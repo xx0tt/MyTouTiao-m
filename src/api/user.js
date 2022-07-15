@@ -15,3 +15,10 @@ export const loginApi = (mobile, code) => {
     data: { mobile, code }
   })
 }
+
+//  发送验证码
+export const sendCodeApi = (mobile) => {
+  return request({
+    url: `/v1_0/sms/codes/${mobile}`
+  })
+}

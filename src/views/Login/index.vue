@@ -8,12 +8,12 @@
     </van-nav-bar>
 
     <!-- form表单 -->
-    <van-form class="from" @submit="onSubmit">
+    <van-form ref="from" class="from" @submit="onSubmit">
       <van-field
         v-model="mobile"
         name="mobile"
         placeholder="请输入手机号"
-        :rules="[{ required: true, message: '请填写用户名' }]"
+        :rules="mobileRules"
       >
         <template #label>
           <span class="toutiao toutiao-shouji"></span>
@@ -23,15 +23,34 @@
         v-model="code"
         name="code"
         placeholder="请输入验证码"
-        :rules="[{ required: true, message: '请填写密码' }]"
+        :rules="codeRules"
       >
         <template #label>
           <span class="toutiao toutiao-yanzhengma"></span>
         </template>
+
+        <!-- 发送验证码 -->
         <template #right-icon>
-          <van-button class="code-btn" round size="mini">发送验证码</van-button>
+          <!-- 倒计时 -->
+          <van-count-down
+            v-if="isShowCountDown"
+            :time="3 * 1000"
+            @finish="isShowCountDown = false"
+            format="ss"
+          />
+          <!-- 发送 -->
+          <van-button
+            v-else
+            class="code-btn"
+            round
+            size="mini"
+            @click="sendCode"
+            >发送验证码</van-button
+          >
         </template>
       </van-field>
+
+      <!-- 登录按钮 -->
       <div style="margin: 16px">
         <van-button block type="info" native-type="submit" color="#6db4fb"
           >登录</van-button
@@ -42,12 +61,16 @@
 </template>
 
 <script>
-import { loginApi } from '@/api/user'
+import { loginApi, sendCodeApi } from '@/api/user'
+import { mobileRules, codeRules } from './rules'
 export default {
   data() {
     return {
       mobile: '',
-      code: ''
+      code: '',
+      mobileRules,
+      codeRules,
+      isShowCountDown: false
     }
   },
 
@@ -56,8 +79,45 @@ export default {
       this.$router.back()
     },
     async onSubmit() {
-      const res = await loginApi(this.mobile, this.code)
-      console.log(res)
+      this.$toast.loading({
+        message: '加载中...',
+        forbidClick: true
+      })
+
+      try {
+        const { data } = await loginApi(this.mobile, this.code)
+        // 存储到store
+        this.$store.commit('setUser', data.data)
+        // 跳转到主页
+        this.$router.push('/profile')
+        // 提示成功
+        this.$toast.success('登陆成功')
+      } catch (error) {
+        // 拿到状态码
+        const { status } = error.response
+        let msg = '登陆错误，请稍后重试'
+        if (status === 400) msg = error.response.data.message
+        // 提示失败信息
+        this.$toast.fail(msg)
+      }
+    },
+    async sendCode(e) {
+      // 阻止默认行为
+      e.preventDefault()
+      try {
+        // 校验手机号
+        await this.$refs.from.validate('mobile')
+        // 请求验证码
+        const res = await sendCodeApi(this.mobile)
+        console.log(res)
+        // 开始倒计时
+        this.isShowCountDown = true
+      } catch (error) {
+        // 表单验证失败
+        if (!error.response) return this.$toast.fail(error.message)
+        // 服务端返回错误
+        this.$toast.fail(error.response.data.message)
+      }
     }
   }
 }
