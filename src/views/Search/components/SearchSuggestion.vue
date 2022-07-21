@@ -1,6 +1,10 @@
 <template>
   <div>
-    <van-cell v-for="(item, index) in heightligthData" :key="index">
+    <van-cell
+      v-for="(item, index) in heightligthData"
+      :key="index"
+      @click="clickFn(item)"
+    >
       <template #icon>
         <van-icon name="search" class="search-icon" />
       </template>
@@ -41,11 +45,20 @@ export default {
     async getSearchRuggestion() {
       try {
         const { data } = await getSearchRuggestion(this.keywords)
-        if (!data.data.options[0]) return this.$toast.fail('暂无数据')
+        // if (!data.data.options[0]) return this.$toast.fail('暂无数据')
         this.Ruggestion = data.data.options.filter(Boolean)
       } catch (error) {
         console.log(error)
       }
+    },
+    // 点击搜索建议
+    clickFn(item) {
+      this.$parent.keywords = item.replace(
+        /<span style="color:red">|<\/span>/g,
+        ''
+      )
+
+      this.$parent.isShowSearchResult = true
     }
   },
   computed: {

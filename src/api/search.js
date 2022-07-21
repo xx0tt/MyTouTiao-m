@@ -9,3 +9,15 @@ export const getSearchRuggestion = (q) => {
     }
   })
 }
+
+// 获取搜索结果
+export const getResultApi = (q, page) => {
+  return request({
+    url: '/v1_0/search',
+    params: {
+      q,
+      page,
+      per_page: 10
+    }
+  })
+}

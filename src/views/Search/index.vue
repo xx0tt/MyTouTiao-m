@@ -21,6 +21,7 @@
 import SearchSuggestion from './components/SearchSuggestion.vue'
 import SearchResult from './components/SearchResult.vue'
 import SearchHistory from './components/SearchHistory.vue'
+import storage from '@/utils/storage'
 export default {
   name: 'Search',
   components: {
@@ -31,7 +32,8 @@ export default {
   data() {
     return {
       keywords: '',
-      isShowSearchResult: false
+      isShowSearchResult: false,
+      Historylist: storage.get('TOUTIAO_HISTORY') || []
     }
   },
   methods: {
@@ -41,6 +43,18 @@ export default {
     },
     onCancel() {
       this.$router.go(-1)
+    },
+
+    // 删除单个历史
+    delHistory(val) {
+      const index = this.Historylist.findIndex((item) => item === val)
+      this.Historylist.splice(index, 1)
+    },
+
+    // 删除所有历史
+    delHistoryAll() {
+      this.Historylist = []
+      // this.Historylist.forEach((item) => this.delHistory(item))
     }
   },
   computed: {
@@ -50,6 +64,14 @@ export default {
       if (this.isShowSearchResult) return 'SearchResult'
 
       return 'SearchSuggestion'
+    }
+  },
+  watch: {
+    Historylist: {
+      deep: true,
+      handler(val) {
+        storage.set('TOUTIAO_HISTORY', val)
+      }
     }
   }
 }
