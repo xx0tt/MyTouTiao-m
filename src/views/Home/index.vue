@@ -13,7 +13,9 @@
     <van-tabs v-model="active" swipeable>
       <van-tab v-for="item in mychannel" :key="item.id" :title="item.name">
         <!-- 文章列表 -->
-        <ArticList :id="item.id"></ArticList>
+        <keep-alive>
+          <ArticList :id="item.id"></ArticList>
+        </keep-alive>
       </van-tab>
 
       <!-- 更多的按钮 -->

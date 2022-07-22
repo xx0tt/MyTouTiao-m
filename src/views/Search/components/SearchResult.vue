@@ -69,7 +69,7 @@ export default {
     // 加载事件
     async onLoad() {
       this.page++
-      console.log(this.page)
+      // 请求下一页数据
       await this.getResult()
       this.loading = false
     }

@@ -5,6 +5,7 @@
       v-if="aritcel.cover.type === 0"
       :title="aritcel.title"
       :label="aritcelDesc"
+      @click="clickArtFn"
     />
 
     <!-- 一张图片 -->
@@ -12,12 +13,17 @@
       v-if="aritcel.cover.type === 1"
       :title="aritcel.title"
       :label="aritcelDesc"
+      @click="clickArtFn"
     >
       <van-image width="3rem" height="2rem" :src="aritcel.cover.images[0]" />
     </van-cell>
 
     <!-- 三张图片 -->
-    <van-cell v-if="aritcel.cover.type === 3" :title="aritcel.title">
+    <van-cell
+      v-if="aritcel.cover.type === 3"
+      :title="aritcel.title"
+      @click="clickArtFn"
+    >
       <template #label>
         <!-- 图片 -->
         <div>
@@ -50,6 +56,12 @@ export default {
       const arc = this.aritcel
       const time = dayjs(arc.pubdate).fromNow() // 格式化时间
       return `${arc.aut_name} ${arc.comm_count}评论 ${time}`
+    }
+  },
+  methods: {
+    // 点击文章
+    clickArtFn() {
+      this.$router.push(`/detail/${this.aritcel.art_id}`)
     }
   }
 }

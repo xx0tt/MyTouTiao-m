@@ -17,11 +17,14 @@
 
 <script>
 import { getSearchRuggestion } from '@/api'
+// import { debounce } from 'lodash'
+
 export default {
   name: 'SearchSuggestion',
   data() {
     return {
-      Ruggestion: []
+      Ruggestion: [],
+      timer: ''
     }
   },
   props: {
@@ -36,7 +39,10 @@ export default {
     keywords: {
       immediate: true,
       handler() {
-        this.getSearchRuggestion()
+        this.timer = setTimeout(() => {
+          if (this.timer) clearTimeout(this.timer)
+          this.getSearchRuggestion()
+        }, 500)
       }
     }
   },
@@ -46,6 +52,7 @@ export default {
       try {
         const { data } = await getSearchRuggestion(this.keywords)
         // if (!data.data.options[0]) return this.$toast.fail('暂无数据')
+
         this.Ruggestion = data.data.options.filter(Boolean)
       } catch (error) {
         console.log(error)
