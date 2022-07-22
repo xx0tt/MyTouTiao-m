@@ -161,7 +161,8 @@ export default {
       twofinished: false,
       offset: '',
       twooffset: '',
-      twoLastComId: '' // 上一次被查看的评论ID
+      twoLastComId: '', // 上一次被查看的评论ID,
+      newCom: false // 是否为点击发布评论后触发更新
     }
   },
   components: { HeaderPic, Comments, Footer },
@@ -213,8 +214,10 @@ export default {
           if (this.twooffset === data.data.end_id) this.twofinished = true
           // 存入 评论总个数  如果下面直接push数据，评论总个数会丢失
           this.twototalCount = data.data.total_count
-          // 如果 上一次请求的comID 和 这次请求的comID 相同，则证明进入的是同一个子评论，直接push
-          if (this.twoLastComId === source) {
+          // 如果 上一次请求的comID 和 这次请求的comID 相同，则证明进入的是同一个子评论
+          // 并且不能是从点击发布评论后触发的更新
+          // 点击发布评论后需要重新获取第一页数据，需要再次覆盖，不能push，否则报错
+          if (this.twoLastComId === source && !this.newCom) {
             return this.twoComments.push(...data.data.results)
           }
           // 如果和上次进入的不是同一个子评论，则直接覆盖原子评论数据
@@ -224,18 +227,26 @@ export default {
         }
 
         // 如果是获取文章的评论
-        this.comments.push(...data.data.results)
         // 获取偏移量
         this.offset = data.data.last_id
         // 如果偏移量到底
         if (this.offset === data.data.end_id) this.finished = true
+        // 不是从点击发布评论后触发的更新 push
+        if (!this.newCom) {
+          return this.comments.push(...data.data.results)
+        }
+        // 如果是从点击事件触发 直接覆盖原评论数据
+        this.comments = data.data.results
       } catch (error) {
         this.$toast.fail('评论获取失败，请稍后重试')
+      } finally {
+        this.newCom = false
       }
     },
 
     // 点击发布评论按钮
     async postCommentFn() {
+      this.newCom = true
       // 如果是发布的子评论 (判断条件为二级评论弹出框是否弹出)
       if (this.twoShow) {
         // 发布评论请求
@@ -247,6 +258,7 @@ export default {
         return
       }
       // 如果发布的是文章的评论 发布评论请求
+      this.offset = ''
       await this.postComment(this.AtricInfo.art_id, this.message)
     },
 
