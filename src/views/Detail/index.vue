@@ -170,6 +170,8 @@ export default {
   async created() {
     // 获取文章详情
     await this.getAtricInfo()
+    // 获取评论
+    await this.getcomments('a', this.AtricInfo.art_id)
   },
 
   methods: {
@@ -186,6 +188,7 @@ export default {
     async twoonLoad() {
       // 防止刚进入页面无数据时刷新
       if (!this.twooffset) return (this.twoloading = false)
+
       // 请求数据
       await this.getcomments('c', this.comment.com_id, this.twooffset)
       this.twoloading = false
@@ -214,6 +217,7 @@ export default {
           if (this.twooffset === data.data.end_id) this.twofinished = true
           // 存入 评论总个数  如果下面直接push数据，评论总个数会丢失
           this.twototalCount = data.data.total_count
+
           // 如果 上一次请求的comID 和 这次请求的comID 相同，则证明进入的是同一个子评论
           // 并且不能是从点击发布评论后触发的更新
           // 点击发布评论后需要重新获取第一页数据，需要再次覆盖，不能push，否则报错
@@ -235,7 +239,7 @@ export default {
         if (!this.newCom) {
           return this.comments.push(...data.data.results)
         }
-        // 如果是从点击事件触发 直接覆盖原评论数据
+        // 如果是从发布评论触发 直接覆盖原评论数据
         this.comments = data.data.results
       } catch (error) {
         this.$toast.fail('评论获取失败，请稍后重试')
@@ -273,12 +277,16 @@ export default {
 
         if (data.message === 'OK') {
           this.$toast.success('评论发布成功')
+
           // 如果是发布的子评论
           if (this.twoShow) {
             // 发请求刷新子评论区
-            return this.getcomments('c', this.comment.com_id)
+            await this.getcomments('c', this.comment.com_id)
+            this.comment.reply_count = this.twototalCount
+            this.newCom = true
           }
           // 发请求刷新文章评论
+          this.getAtricInfo()
           this.getcomments('a', this.AtricInfo.art_id)
         }
       } catch (error) {
@@ -296,6 +304,7 @@ export default {
 
     // 二级评论点击事件
     async newCommentFn(comment) {
+      this.newCom = true
       // 把点击的子评论数据保存到data
       this.comment = comment
       // 展开二级评论弹出框
