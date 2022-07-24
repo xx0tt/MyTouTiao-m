@@ -20,6 +20,7 @@
 
       <!-- 内容区域 -->
       <div
+        ref="content"
         class="article-content markdown-body"
         v-html="AtricInfo.content"
       ></div>
@@ -144,6 +145,7 @@ import '@/assets/css/github-markdown.css'
 import HeaderPic from './components/Header.vue'
 import Comments from './components/Comments.vue'
 import Footer from './components/Footer.vue'
+import { ImagePreview } from 'vant'
 export default {
   data() {
     return {
@@ -172,6 +174,20 @@ export default {
     await this.getAtricInfo()
     // 获取评论
     await this.getcomments('a', this.AtricInfo.art_id)
+    // 获取内容区的图片
+    this.$nextTick(() => {
+      const images = []
+      const img = this.$refs.content.querySelectorAll('img')
+      img.forEach((item, index) => {
+        images.push(item.src)
+        item.addEventListener('click', function () {
+          ImagePreview({
+            images,
+            startPosition: index
+          })
+        })
+      })
+    })
   },
 
   methods: {
